@@ -31,25 +31,36 @@
 
     <title>credit_payadvice_receiving</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
 </head>
 <body>
     <script>
+        // Prints a PDF blob URL through a hidden iframe. Only one iframe is kept:
+        // each one holds a full PDF viewer, so adding a new one per voucher made
+        // the tab slower and heavier over a working day.
+        var printFrame = null;
+        var printUrl = null;
         function autoPrint(url) {
-            var iframe = document.createElement('iframe');
-            iframe.style.visibility = 'hidden';
-            iframe.src = url;
-            document.body.appendChild(iframe);
-            iframe.onload = function () {
-                iframe.contentWindow.print();
+            if (printFrame) printFrame.remove();
+            if (printUrl) URL.revokeObjectURL(printUrl);
+            printUrl = url;
+            printFrame = document.createElement('iframe');
+            printFrame.style.cssText = 'position:fixed;right:0;bottom:0;border:0;visibility:hidden';
+            printFrame.onload = function () {
+                this.contentWindow.focus();
+                this.contentWindow.print();
             };
+            printFrame.src = url;
+            document.body.appendChild(printFrame);
         }
     </script>
-    <script src="assets/pdfjs/pdf.min.js"></script>
-    <script type="text/javascript">
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "assets/pdfjs/pdf.worker.min.js";
+    <script>
+        // If pdf.js is not ready yet, the printing package would fetch it from
+        // unpkg.com; this makes it load our local copy instead.
+        window.dartPdfJsBaseUrl = 'assets/pdfjs/';
     </script>
+    <!-- Deferred so it no longer blocks the app from starting; only needed for PDF previews. -->
+    <script src="assets/pdfjs/pdf.min.js" defer
+        onload="pdfjsLib.GlobalWorkerOptions.workerSrc = 'assets/pdfjs/pdf.worker.min.js'"></script>
     <script src="flutter_bootstrap.js" async></script>
-    <!-- <script src="assets/bootstrap/js/bootstrap.bundle.min.js" async></script> -->
 </body>
 </html>
