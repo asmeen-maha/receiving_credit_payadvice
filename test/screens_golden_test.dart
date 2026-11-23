@@ -6,11 +6,12 @@ library;
 import 'dart:io';
 
 import 'package:credit_payadvice_receiving/app.dart';
+import 'package:credit_payadvice_receiving/core/user/desk_user.dart';
 import 'package:credit_payadvice_receiving/data/models/cash_advance.dart';
 import 'package:credit_payadvice_receiving/data/models/pay_type.dart';
 import 'package:credit_payadvice_receiving/data/models/transaction_all.dart';
 import 'package:credit_payadvice_receiving/data/services/api_service.dart';
-import 'package:flutter/material.dart' show TextField;
+import 'package:flutter/material.dart' show Icons, TextField;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,35 +141,54 @@ void main() {
     debugDisableShadows = true;
   });
 
-  testWidgets('agent report: type, pick an agent, enable the report buttons', (tester) async {
+  testWidgets('agent report: pick one agent, change it, print both reports', (tester) async {
     await pumpApp(tester);
     final agentField = find.byWidgetPredicate(
-        (w) => w is TextField && (w.decoration?.hintText ?? '').startsWith('+ เพิ่มเอเย่นต์'));
-    await tester.enterText(agentField, 'lotus');
+        (w) => w is TextField && (w.decoration?.hintText ?? '').startsWith('พิมพ์รหัสหรือชื่อเอเย่นต์'));
+
+    Future<void> pick(String query, String name) async {
+      await tester.enterText(agentField, query);
+      await tester.pump(const Duration(milliseconds: 100));
+      // The suggestion overlay (OverlayPortal) sits before the table in the tree.
+      await tester.tap(find.text(name).first);
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    await pick('phuket', 'Phuket Happy Holiday'); // C04112 · 2 rows
+    expect(agentField, findsNothing, reason: 'only one agent: the field is replaced by the chip');
+    expect(find.text('2 รายการ'), findsOneWidget);
+
+    // Change the agent: remove the chip, pick another.
+    await tester.tap(find.byTooltip('เปลี่ยนเอเย่นต์'));
     await tester.pump(const Duration(milliseconds: 100));
-    // One in the table, one in the suggestion list.
-    expect(find.text('Golden Lotus Tour (Thailand)'), findsNWidgets(2));
-    // The suggestion overlay (OverlayPortal) sits before the table in the tree.
-    await tester.tap(find.text('Golden Lotus Tour (Thailand)').first);
-    await tester.pump(const Duration(milliseconds: 100));
-    await expectLater(find.byType(App), matchesGoldenFile('goldens/agent_report.png'));
-    expect(find.text('C05210'), findsNWidgets(2)); // table row + chip
+    await pick('lotus', 'Golden Lotus Tour (Thailand)'); // C05210 · 1 row
     expect(find.text('1 รายการ'), findsOneWidget);
+    await expectLater(find.byType(App), matchesGoldenFile('goldens/agent_report.png'));
 
     // Both reports generate a PDF; success clears the selection, failure shows a toast.
     for (final button in ['PDF รายการของเอเย่นต์', 'รายงานแยกตามรายชื่อ']) {
-      if (find.text('C05210').evaluate().length < 2) {
-        await tester.enterText(agentField, 'lotus');
-        await tester.pump(const Duration(milliseconds: 100));
-        await tester.tap(find.text('Golden Lotus Tour (Thailand)').first);
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      if (agentField.evaluate().isNotEmpty) await pick('lotus', 'Golden Lotus Tour (Thailand)');
       await tester.tap(find.text(button));
       await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 3)));
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('สร้างรายงานไม่สำเร็จ'), findsNothing, reason: button);
-      expect(find.text('C05210'), findsOneWidget, reason: '$button should clear the selection');
+      expect(agentField, findsOneWidget, reason: '$button should clear the selection');
     }
+    debugDisableShadows = true;
+  });
+
+  testWidgets('user chip and bell menu', (tester) async {
+    DeskUser.save(const DeskUser(name: 'สมใจ ใจดี', department: 'ฝ่ายบัญชี'));
+    addTearDown(() => DeskUser.save(null));
+    await pumpApp(tester);
+    expect(find.textContaining('คุณสมใจ'), findsOneWidget);
+    expect(find.text('สจ'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.notifications_none_rounded));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('รายการรอตรวจสอบ'), findsOneWidget);
+    await expectLater(find.byType(App), matchesGoldenFile('goldens/nav_user.png'));
     debugDisableShadows = true;
   });
 }

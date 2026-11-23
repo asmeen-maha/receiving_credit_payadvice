@@ -425,7 +425,9 @@ class _Stats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final byType = <String?, List<CashAdvance>>{};
+    // Transfer, cash and card always have a tile (showing 0 when nothing is
+    // pending), as in the design; other codes appear only when present.
+    final byType = <String?, List<CashAdvance>>{for (final code in PayTypeStyle.mainCodes) code: []};
     for (final r in rows) {
       byType.putIfAbsent(r.accode, () => []).add(r);
     }
@@ -466,33 +468,49 @@ class _Stats extends StatelessWidget {
       ]),
     );
 
-    Widget typeTile(MapEntry<String?, List<CashAdvance>> e) => GlassCard(
-          radius: 20,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(children: [
-            IconBadge(
-              icon: PayTypeStyle.of(e.key).icon,
-              background: PayTypeStyle.of(e.key).background,
-              foreground: PayTypeStyle.of(e.key).foreground,
-              size: 44,
-              radius: 15,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(payTypeNames.label(e.key), style: AppText.body(12.5, color: AppColors.muted)),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text.rich(TextSpan(children: [
-                    TextSpan(text: formatMoney(e.value.totalAmount), style: AppText.display(22)),
-                    TextSpan(text: '  ${e.value.length} รายการ', style: AppText.body(12.5, color: AppColors.muted)),
-                  ])),
-                ),
-              ]),
-            ),
-          ]),
-        );
+    Widget typeTile(MapEntry<String?, List<CashAdvance>> e) {
+      final style = PayTypeStyle.of(e.key);
+      final apiName = payTypeNames.of(e.key);
+      final name = apiName != '-' ? apiName : (style.thai.isNotEmpty ? style.thai : payTypeNames.label(e.key));
+      final empty = e.value.isEmpty;
+      return GlassCard(
+        radius: 20,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        child: Row(children: [
+          IconBadge(
+            icon: PayTypeStyle.of(e.key).icon,
+            background: PayTypeStyle.of(e.key).background,
+            foreground: PayTypeStyle.of(e.key).foreground,
+            size: 44,
+            radius: 15,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text.rich(
+                TextSpan(children: [
+                  TextSpan(text: name),
+                  if (style.english.isNotEmpty && !apiName.contains(style.english)) TextSpan(text: ' ${style.english}'),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppText.body(12.5, color: AppColors.muted),
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text.rich(TextSpan(children: [
+                  TextSpan(
+                      text: formatMoney(e.value.totalAmount),
+                      style: AppText.display(22, color: empty ? AppColors.faint : AppColors.ink)),
+                  TextSpan(text: '  ${e.value.length} รายการ', style: AppText.body(12.5, color: AppColors.muted)),
+                ])),
+              ),
+            ]),
+          ),
+        ]),
+      );
+    }
 
     return LayoutBuilder(builder: (context, c) {
       final entries = byType.entries.toList();

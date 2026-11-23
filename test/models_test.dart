@@ -1,3 +1,4 @@
+import 'package:credit_payadvice_receiving/core/user/desk_user.dart';
 import 'package:credit_payadvice_receiving/core/utils/formatters.dart';
 import 'package:credit_payadvice_receiving/data/models/cash_advance.dart';
 import 'package:credit_payadvice_receiving/data/models/pay_type.dart';
@@ -98,5 +99,12 @@ void main() {
       expect(t.payeshop, isEmpty);
       expect(t.details, isEmpty);
     });
+  });
+
+  test('DeskUser initials skip Thai leading vowels', () {
+    expect(const DeskUser(name: 'สมใจ ใจดี').initials, 'สจ');
+    expect(const DeskUser(name: 'เวียง โสภา').initials, 'วส');
+    expect(const DeskUser(name: 'john doe').initials, 'JD');
+    expect(const DeskUser(name: 'สมใจ ใจดี').firstName, 'สมใจ');
   });
 }

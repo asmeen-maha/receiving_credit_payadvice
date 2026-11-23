@@ -11,14 +11,25 @@ class PayTypeStyle {
   final Color dot;
   final IconData icon;
 
-  const PayTypeStyle(this.background, this.foreground, this.dot, this.icon);
+  /// Thai name used until the pay-type list has loaded, and the English
+  /// subtitle shown next to it ("เงินสด Cash").
+  final String thai;
+  final String english;
 
-  static const cash =
-      PayTypeStyle(AppColors.marigoldSoft, AppColors.marigoldText, AppColors.marigold, Icons.payments_outlined);
-  static const card =
-      PayTypeStyle(AppColors.magentaSoft, AppColors.magentaDark, AppColors.magenta, Icons.credit_card_rounded);
-  static const transfer =
-      PayTypeStyle(AppColors.lagoonSoft, AppColors.lagoonText, AppColors.lagoon, Icons.swap_horiz_rounded);
+  const PayTypeStyle(this.background, this.foreground, this.dot, this.icon, {this.thai = '', this.english = ''});
+
+  static const cash = PayTypeStyle(
+      AppColors.marigoldSoft, AppColors.marigoldText, AppColors.marigold, Icons.payments_outlined,
+      thai: 'เงินสด', english: 'Cash');
+  static const card = PayTypeStyle(
+      AppColors.magentaSoft, AppColors.magentaDark, AppColors.magenta, Icons.credit_card_rounded,
+      thai: 'บัตรเครดิต', english: 'Card');
+  static const transfer = PayTypeStyle(
+      AppColors.lagoonSoft, AppColors.lagoonText, AppColors.lagoon, Icons.swap_horiz_rounded,
+      thai: 'เงินโอน', english: 'Transfer');
+
+  /// Pay types that always get a summary tile, in the design's order.
+  static const mainCodes = [AccountCode.transfer, AccountCode.cash, AccountCode.creditCard];
   static const other = PayTypeStyle(Color(0xFFF1ECF0), AppColors.muted, AppColors.faint, Icons.receipt_long_outlined);
 
   static PayTypeStyle of(String? accode) => switch (accode) {

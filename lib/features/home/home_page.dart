@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../shared/widgets/chips.dart';
 import '../../shared/widgets/surfaces.dart';
 import '../credit/credit_page.dart';
 import '../pay_advance/pay_advance_page.dart';
+import 'widgets/nav_actions.dart';
 
 /// App shell: floating nav bar with the Credit and Pay Advance tabs.
 class HomePage extends StatefulWidget {
@@ -100,7 +100,7 @@ class _NavBar extends StatelessWidget {
         if (wide)
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Carnival Magic', style: AppText.display(15)),
-            Text('Receiving desk', style: AppText.body(12, color: AppColors.muted)),
+            Text('Receiving App', style: AppText.body(12, color: AppColors.muted)),
           ]),
         const Spacer(),
         Container(
@@ -112,10 +112,12 @@ class _NavBar extends StatelessWidget {
           ]),
         ),
         const Spacer(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(AppInfo.version, style: AppText.body(12, color: AppColors.faint)),
+        PendingBell(
+          tabs: [for (final t in tabs) (icon: t.icon, label: t.label, count: t.count)],
+          onSelect: onSelect,
         ),
+        const SizedBox(width: 10),
+        UserChip(compact: !wide),
       ]),
     );
   }

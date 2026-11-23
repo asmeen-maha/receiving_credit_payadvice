@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/user/desk_user.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/pdf_printer.dart';
 import '../../data/models/cash_advance.dart';
@@ -219,8 +220,7 @@ class _CreditPageState extends State<CreditPage> with AutomaticKeepAliveClientMi
   Future<void> _verifyAll() async {
     if (_dialogOpen || _verifyingAll) return;
     // Rows with their own request in flight are left out to avoid posting twice.
-    final items =
-        _visible.where((r) => !r.isVerified && r.hasAccountCode && !_busyIds.contains(r.id ?? '')).toList();
+    final items = _visible.where((r) => !r.isVerified && r.hasAccountCode && !_busyIds.contains(r.id ?? '')).toList();
     if (items.isEmpty) return;
     final date = _startDate;
     _dialogOpen = true;
@@ -307,23 +307,23 @@ class _CreditPageState extends State<CreditPage> with AutomaticKeepAliveClientMi
     final Uint8List pdf;
     try {
       pdf = await runWithProgress(
-      context,
-      () => _isSingleDay
-          ? CreditByStaffReport.generate(
-              date: _startDate,
-              groups: StaffGroup.groupByStaff(_credits),
-              payTypes: _payTypes,
-              title: _creditReportTitle,
-              titleEng: _creditReportTitleEng,
-            )
-          : CreditRangeReport.generate(
-              startDate: _startDate,
-              endDate: _endDate,
-              items: _credits,
-              payTypes: _payTypes,
-              title: _creditReportTitle,
-              titleEng: _creditReportTitleEng,
-            ),
+        context,
+        () => _isSingleDay
+            ? CreditByStaffReport.generate(
+                date: _startDate,
+                groups: StaffGroup.groupByStaff(_credits),
+                payTypes: _payTypes,
+                title: _creditReportTitle,
+                titleEng: _creditReportTitleEng,
+              )
+            : CreditRangeReport.generate(
+                startDate: _startDate,
+                endDate: _endDate,
+                items: _credits,
+                payTypes: _payTypes,
+                title: _creditReportTitle,
+                titleEng: _creditReportTitleEng,
+              ),
       );
     } catch (e) {
       debugPrint('Credit report failed: $e');
@@ -563,7 +563,13 @@ class _Greeting extends StatelessWidget {
     return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('$_hello · เงินเชื่อ', style: AppText.display(30)),
+          ValueListenableBuilder<DeskUser?>(
+            valueListenable: DeskUser.current,
+            builder: (context, user, _) => Text(
+              user == null ? '$_hello · เงินเชื่อ' : '$_hello คุณ${user.firstName}',
+              style: AppText.display(30),
+            ),
+          ),
           const SizedBox(height: 4),
           Text.rich(TextSpan(style: AppText.body(14.5, color: AppColors.muted), children: [
             TextSpan(text: '${DateFmt.thaiLong(DateTime.now())} · รอตรวจสอบ '),

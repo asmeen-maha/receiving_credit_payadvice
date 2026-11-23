@@ -45,8 +45,8 @@ class ApiService {
 
   /// Account code → pay type names. Cached after the first success.
   Future<List<PayType>?> fetchPayTypes() {
-    return _payTypes ??= _postList(ApiConfig.marketingUrl, {'param': 'listtypepay'}, PayType.fromJsonList)
-        .then((result) {
+    return _payTypes ??=
+        _postList(ApiConfig.marketingUrl, {'param': 'listtypepay'}, PayType.fromJsonList).then((result) {
       if (result == null || result.isEmpty) _payTypes = null; // allow a retry
       return result;
     });

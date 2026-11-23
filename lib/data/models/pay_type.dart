@@ -7,7 +7,8 @@ class PayType {
 
   const PayType({this.acccode, this.shutname});
 
-  factory PayType.fromJson(Map<String, dynamic> json) => PayType(acccode: jsonString(json['acccode']), shutname: jsonString(json['shutname']));
+  factory PayType.fromJson(Map<String, dynamic> json) =>
+      PayType(acccode: jsonString(json['acccode']), shutname: jsonString(json['shutname']));
 
   static List<PayType> fromJsonList(List list) => list.map((item) => PayType.fromJson(item)).toList();
 

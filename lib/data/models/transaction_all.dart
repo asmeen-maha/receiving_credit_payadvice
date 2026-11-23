@@ -2,7 +2,10 @@ import '../../core/utils/formatters.dart';
 
 /// Nested lists may come back as `null`, `""` or `{}` when empty.
 List<T> _list<T>(dynamic json, T Function(Map<String, dynamic>) fromJson) => json is List
-    ? [for (final e in json) if (e is Map<String, dynamic>) fromJson(e)]
+    ? [
+        for (final e in json)
+          if (e is Map<String, dynamic>) fromJson(e)
+      ]
     : <T>[];
 
 /// A cashier's daily transaction summary (ticketing API `reportpaymentall`).

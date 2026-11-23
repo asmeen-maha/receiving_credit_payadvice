@@ -116,8 +116,8 @@ class _IncomePreviewDialogState extends State<_IncomePreviewDialog> {
 
   Future<void> _print() => _export((pdf) async => printPdf(pdf));
 
-  Future<void> _save() => _export(
-      (pdf) => Printing.sharePdf(bytes: pdf, filename: 'income-report-${DateFmt.api(widget.date)}.pdf'));
+  Future<void> _save() =>
+      _export((pdf) => Printing.sharePdf(bytes: pdf, filename: 'income-report-${DateFmt.api(widget.date)}.pdf'));
 
   @override
   Widget build(BuildContext context) {
